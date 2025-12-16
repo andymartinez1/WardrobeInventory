@@ -5,6 +5,10 @@ namespace Wardrobe_Inventory.Data;
 
 public class WardrobeDbContext : DbContext
 {
+    public WardrobeDbContext(DbContextOptions<WardrobeDbContext> options) : base(options)
+    {
+    }
+
     public DbSet<Brand> Brands { get; set; }
     public DbSet<ClothingCategory> Categories { get; set; }
     public DbSet<ClothingItem> Items { get; set; }
