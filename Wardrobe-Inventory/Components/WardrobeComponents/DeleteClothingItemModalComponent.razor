@@ -1,0 +1,38 @@
+﻿<Modal @ref="modal" Title="Delete">
+    <BodyTemplate>
+        Are you sure you want to delete this item? This action cannot be undone.
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+        <Button Color="ButtonColor.Danger" @onclick="OnDeleteHandler">Delete</Button>
+    </FooterTemplate>
+</Modal>
+
+<Button class="btn btn-outline-danger" @onclick="OnShowModalClick"><i
+        class="bi bi-trash"></i></Button>
+
+@code{
+    private Modal modal = default!;
+
+    [Parameter] public string Title { get; set; }
+
+    [Parameter] public EventCallback<bool> Delete { get; set; }
+
+    private async Task OnShowModalClick()
+    {
+        await modal.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+
+    private async Task OnDeleteHandler()
+    {
+        await Delete.InvokeAsync();
+
+        await OnHideModalClick();
+    }
+
+}

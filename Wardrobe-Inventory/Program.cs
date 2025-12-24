@@ -9,6 +9,7 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddDbContext<WardrobeDbContext>();
 builder.Services.AddScoped<IClothingItemService, ClothingItemService>();
+builder.Services.AddBlazorBootstrap();
 
 var app = builder.Build();
 

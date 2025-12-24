@@ -1,9 +1,12 @@
 ﻿@page "/"
 @page "/WardrobeInventoryList"
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Wardrobe_Inventory.Components.WardrobeComponents
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-
+<br/>
+<br/>
 @if (IsLoading)
 {
     <div class="position-absolute w-75 h-75 d-flex flex-column align-items-center bg-white justify-content-center">
@@ -12,81 +15,90 @@
 }
 else
 {
-    if (_items.Any())
-    {
-        <div class="card mb-3">
-            <div class="card-header d-flex flex-row">
-                <h2 class="flex-fill">Wardrobe Inventory</h2>
-                <div class="px-1">
-                    <select class="form-select" @onchange="OnPageSizeChanged">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-                <button class="btn btn-outline-secondary">Add New Clothing Item</button>
+    <div class="card mb-3 custom-card">
+        <div class="card-header d-flex flex-row">
+            <h3 class="flex-fill">Wardrobe Inventory</h3>
+            <input type="search" class="form-control-sm m-1" @bind="_categorySearch" @bind:event="oninput"
+                   placeholder="Search by category" autofocus="autofocus"/>
+            <div class="px-1">
+                <select class="form-select" @onchange="OnPageSizeChanged">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
             </div>
-            <div class="card-body pb-2 px-0 mb-0">
-                <QuickGrid @ref="clothingItemGrid" Items="_items" ItemKey="x => x.Id"
-                           Class="table table-hover table-responsive"
-                           Pagination="pagination">
-                    <PropertyColumn Property="i => i.Name" Sortable="true" Align="Align.Center">
-                        <ColumnOptions>
-                            <input type="search" @bind="_nameSearch" placeholder="Filter by name"
-                                   @bind:after="@(() => clothingItemGrid.HideColumnOptionsAsync())"/>
-                        </ColumnOptions>
-                    </PropertyColumn>
-                    <PropertyColumn Property="i => i.Category" Sortable="true" Align="Align.Center"></PropertyColumn>
-                    <PropertyColumn Property="i => i.Brand" Sortable="true" Align="Align.Center"></PropertyColumn>
-                    <TemplateColumn Title="Size" Context="item" Align="Align.Center">
-                        @if (item.Category == ClothingCategory.Sneakers || item.Category == ClothingCategory.Boots)
-                        {
-                            @item.ShoeSize
-                        }
-                        else if (item.Category == ClothingCategory.Jeans)
-                        {
-                            @($"{item.JeansWaist}/{item.JeansInseam}")
-                        }
-                        else
-                        {
-                            @item.ShirtSize
-                        }
-                    </TemplateColumn>
-                    <PropertyColumn Property="i => i.Color" Sortable="true" Align="Align.Center"></PropertyColumn>
-                    <TemplateColumn Title="Actions" Align="Align.Center">
-                        <button type="button" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i></button>
-                        <button type="button" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
-                    </TemplateColumn>
-                </QuickGrid>
-            </div>
-            <div class="card-footer">
-                <Paginator State="pagination"/>
-            </div>
+            <button class="btn btn-outline-secondary">Add New Clothing Item</button>
         </div>
-    }
-    else
-    {
-        <p>No clothing items found.</p>
-    }
+        <div class="card-body pb-2 px-0 mb-0">
+            <QuickGrid @ref="clothingItemGrid" Items="Items" ItemKey="x => x.Id"
+                       Class="table table-hover"
+                       Pagination="pagination">
+                <TemplateColumn Title="" Context="item" Align="Align.Center">
+                    <img src="@item.ImagePath" alt="" style="width: 5rem; height: 5rem"/>
+                </TemplateColumn>
+                <PropertyColumn Property="i => i.Name" Sortable="true" Align="Align.Center">
+                </PropertyColumn>
+                <PropertyColumn Property="i => i.Category" Sortable="true" Align="Align.Center"></PropertyColumn>
+                <PropertyColumn Property="i => i.Brand" Sortable="true" Align="Align.Center"></PropertyColumn>
+                <TemplateColumn Title="Size" Context="item" Align="Align.Center">
+                    @if (item.Category == ClothingCategory.Sneakers || item.Category == ClothingCategory.Boots)
+                    {
+                        @item.ShoeSize
+                    }
+                    else if (item.Category == ClothingCategory.Jeans)
+                    {
+                        @($"{item.JeansWaist}/{item.JeansInseam}")
+                    }
+                    else
+                    {
+                        @item.ShirtSize
+                    }
+                </TemplateColumn>
+                <PropertyColumn Property="i => i.Color" Sortable="true" Align="Align.Center"></PropertyColumn>
+                <TemplateColumn Title="Actions" Align="Align.Center" Context="item">
+                    <button type="button" class="btn btn-outline-info"><i class="bi bi-pencil-square"></i></button>
+                    <DeleteClothingItemModalComponent
+                        Delete="async () => await DeleteClothingItem(item.Id)"></DeleteClothingItemModalComponent>
+                </TemplateColumn>
+            </QuickGrid>
+        </div>
+        <div class="card-footer">
+            <Paginator State="pagination"/>
+        </div>
+    </div>
 }
-
 
 @code {
     [Inject] public IClothingItemService ClothingItemService { get; set; }
-    private bool IsLoading { get; set; } = true;
-    private readonly PaginationState pagination = new() { ItemsPerPage = 10 };
+    public bool IsLoading { get; set; } = true;
+    public bool DeleteDialogOpen { get; set; }
+    private readonly PaginationState pagination = new() {ItemsPerPage = 5};
 
     private QuickGrid<ClothingItem> clothingItemGrid;
-    private string _nameSearch = string.Empty;
+    private string _categorySearch = string.Empty;
     private List<ClothingItem> _allItems = new();
-    private IQueryable<ClothingItem> _items;
+
+    private IQueryable<ClothingItem> Items
+    {
+        get
+        {
+            var result = _allItems.AsQueryable();
+            if (!string.IsNullOrEmpty(_categorySearch))
+            {
+                result = result.Where(c => c.Category.ToString().Contains(_categorySearch, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return result;
+        }
+        set;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         _allItems = await LoadClothingItems();
 
-        _items = _allItems.AsQueryable();
+        Items = _allItems.AsQueryable();
 
         IsLoading = false;
     }
@@ -102,6 +114,13 @@ else
         {
             pagination.ItemsPerPage = int.Parse((string)args.Value);
         }
+    }
+
+    private async Task DeleteClothingItem(int id)
+    {
+        await ClothingItemService.DeleteClothingItemAsync(id);
+
+        NavigationManager.NavigateTo("/", true);
     }
 
 }

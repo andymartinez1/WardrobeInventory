@@ -1,0 +1,36 @@
+﻿<div class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Modal body text goes here.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @onclick="@ModalCancel">Close
+                </button>
+                <button type="button" class="btn btn-primary" @onclick="@ModalSave">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+
+    [Parameter] public string Title { get; set; }
+
+    public EventCallback<bool> OnClose { get; set; }
+
+    private Task ModalCancel()
+    {
+        return OnClose.InvokeAsync(false);
+    }
+
+    private Task ModalSave()
+    {
+        return OnClose.InvokeAsync(true);
+    }
+
+}
