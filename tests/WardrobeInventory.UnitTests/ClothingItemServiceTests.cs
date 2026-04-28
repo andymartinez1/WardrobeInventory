@@ -37,7 +37,7 @@ public class ClothingItemServiceTests
             Name = "Test Shirt",
             Category = ClothingCategory.Shirts,
             Brand = "Test Brand",
-            Color = "Blue"
+            Color = "Blue",
         };
 
         // Act
@@ -53,8 +53,22 @@ public class ClothingItemServiceTests
     public async Task GetAllClothingItemsAsync_ShouldReturnAllItems()
     {
         // Arrange
-        _context.Items.Add(new ClothingItem { Name = "Item 1", Brand = "B1", Color = "C1" });
-        _context.Items.Add(new ClothingItem { Name = "Item 2", Brand = "B2", Color = "C2" });
+        _context.Items.Add(
+            new ClothingItem
+            {
+                Name = "Item 1",
+                Brand = "B1",
+                Color = "C1",
+            }
+        );
+        _context.Items.Add(
+            new ClothingItem
+            {
+                Name = "Item 2",
+                Brand = "B2",
+                Color = "C2",
+            }
+        );
         await _context.SaveChangesAsync();
 
         // Act
@@ -68,7 +82,12 @@ public class ClothingItemServiceTests
     public async Task GetClothingItemAsync_ShouldReturnCorrectItem()
     {
         // Arrange
-        var item = new ClothingItem { Name = "Find Me", Brand = "B1", Color = "C1" };
+        var item = new ClothingItem
+        {
+            Name = "Find Me",
+            Brand = "B1",
+            Color = "C1",
+        };
         _context.Items.Add(item);
         await _context.SaveChangesAsync();
 
@@ -84,7 +103,12 @@ public class ClothingItemServiceTests
     public async Task UpdateClothingItemAsync_ShouldUpdateExistingItem()
     {
         // Arrange
-        var item = new ClothingItem { Name = "Old Name", Brand = "B1", Color = "C1" };
+        var item = new ClothingItem
+        {
+            Name = "Old Name",
+            Brand = "B1",
+            Color = "C1",
+        };
         _context.Items.Add(item);
         await _context.SaveChangesAsync();
 
@@ -101,7 +125,12 @@ public class ClothingItemServiceTests
     public async Task DeleteClothingItemAsync_ShouldRemoveItem()
     {
         // Arrange
-        var item = new ClothingItem { Name = "Delete Me", Brand = "B1", Color = "C1" };
+        var item = new ClothingItem
+        {
+            Name = "Delete Me",
+            Brand = "B1",
+            Color = "C1",
+        };
         _context.Items.Add(item);
         await _context.SaveChangesAsync();
 
@@ -122,5 +151,34 @@ public class ClothingItemServiceTests
         // Assert
         var enumValues = Enum.GetValues<ClothingCategory>().Select(e => e.ToString()).ToList();
         Assert.That(categories, Is.EquivalentTo(enumValues));
+    }
+
+    [Test]
+    public async Task GetClothingItemAsync_NonExistentId_ShouldReturnNull()
+    {
+        // Act
+        var result = await _service.GetClothingItemAsync(999);
+
+        // Assert
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
+    public void DeleteClothingItemAsync_NonExistentId_ShouldThrowException()
+    {
+        // Act & Assert
+        Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await _service.DeleteClothingItemAsync(999)
+        );
+    }
+
+    [Test]
+    public async Task GetAllClothingItemsAsync_EmptyDatabase_ShouldReturnEmptyList()
+    {
+        // Act
+        var result = await _service.GetAllClothingItemsAsync();
+
+        // Assert
+        Assert.That(result, Is.Empty);
     }
 }
