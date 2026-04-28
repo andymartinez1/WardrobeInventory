@@ -2,7 +2,7 @@
 
 A full-featured wardrobe inventory web app built with **ASP.NET Blazor** and **.NET 10** that helps you catalog and manage your clothing collection in a clean, modern UI. The app provides a streamlined workflow for adding items, updating details, uploading images, and browsing your wardrobe efficiently—making it easy to stay organized and quickly find what you own.
 
-![home.png](WardrobeInventory/docs/images/home.png)
+![home.png](docs/images/home.png)
 
 ## Features
 
